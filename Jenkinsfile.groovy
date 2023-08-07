@@ -39,7 +39,7 @@ timestamps {
             script {
 //                for (node in get_node("${JOB_NAME}-${params.ENV}")) {
                 for (node in nodeNames("${JOB_NAME}-${params.ENV}")) {
-                    echo "Node ${node.name} has the desired label."
+                    echo "Node ${node} has the desired label."
 //                    node("${node}") {
 //                        unstash "app"
 //
@@ -85,13 +85,6 @@ def git_checkout() {
             userRemoteConfigs                : [[credentialsId: credentialsId, url: params.REPO]]
     ])
     echo "checkout:PASS"
-}
-
-@NonCPS
-def get_node(labelString) {
-    Jenkins.instance.nodes.findAll { node ->
-        node.labels.any { label -> label.name == labelString }
-    }
 }
 
 @NonCPS
