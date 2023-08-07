@@ -1,5 +1,3 @@
-import jenkins.model.*
-
 /**
  * 全局配置参数
  *
@@ -54,7 +52,7 @@ timestamps {
                         cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
 
                         # 重新启动服务
-                        sudo systemctl restart ${JOB_NAME}
+                        # sudo systemctl restart ${JOB_NAME}
                         """
                     }
                 }
@@ -89,9 +87,9 @@ def git_checkout() {
 @NonCPS
 def nodeFilter(labelString) {
     def nodes = []
-    jenkins.model.Jenkins.get().computers.each { c ->
-        if (c.node.labelString.contains(labelString)) {
-            nodes.add(c.node.selfLabel.name)
+    jenkins.model.Jenkins.instance.nodes.collect { node ->
+        if (node.labelString.contains(labelString)) {
+            nodes.add(node)
         }
     }
     return nodes
