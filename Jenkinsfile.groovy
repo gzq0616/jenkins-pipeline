@@ -34,13 +34,8 @@ timestamps {
 
         }
 
-        // 根据label获取节点
-        def nodesWithLabel = Jenkins.instance.nodes.findAll { node ->
-            node.labels.any { label -> label.name == "${JOB_NAME}-${params.ENV}" }
-        }
-
         stage('deploy') {
-            for (node in nodesWithLabel) {
+            for (node in get_node("${JOB_NAME}-${params.ENV}")) {
                 node.with {
                     unstash "app"
 
@@ -87,4 +82,11 @@ def git_checkout() {
             userRemoteConfigs                : [[credentialsId: credentialsId, url: params.REPO]]
     ])
     echo "checkout:PASS"
+}
+
+@NonCPS
+def get_node(labelString) {
+    Jenkins.instance.nodes.findAll { node ->
+        node.labels.any { label -> label.name == labelString }
+    }
 }
