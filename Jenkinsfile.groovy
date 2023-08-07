@@ -36,9 +36,9 @@ timestamps {
         }
 
         stage('deploy') {
-            node {
-                for (node in nodeNames("${JOB_NAME}-${params.ENV}")) {
-                    node.with {
+            script {
+                for (node in get_node("${JOB_NAME}-${params.ENV}")) {
+                    node("${node}") {
                         unstash "app"
 
                         sh """
@@ -60,8 +60,6 @@ timestamps {
                 }
             }
         }
-
-
     } catch (err) {
         currentBuild.result = "FAILURE"
         echo "${err}"
@@ -92,9 +90,4 @@ def get_node(labelString) {
     Jenkins.instance.nodes.findAll { node ->
         node.labels.any { label -> label.name == labelString }
     }
-}
-
-@NonCPS
-def nodeNames(labelString) {
-    return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
 }
