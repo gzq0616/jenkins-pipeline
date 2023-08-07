@@ -38,7 +38,6 @@ timestamps {
         stage('deploy') {
             script {
                 for (Node in nodeFilter("${JOB_NAME}-${params.ENV}")) {
-                    echo "Running in Node:${Node} "
                     node("${Node.trim()}") {
                         unstash "app"
 
@@ -55,7 +54,7 @@ timestamps {
                         cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
 
                         # 重新启动服务
-                        sudo systemctl restart ${JOB_NAME}
+                        ## sudo systemctl restart ${JOB_NAME}
                         """
                     }
                 }
