@@ -38,7 +38,7 @@ timestamps {
         stage('deploy') {
             script {
                 for (Node in nodeFilter("${JOB_NAME}-${params.ENV}")) {
-                    echo "Node ${Node} has the desired label."
+                    echo "Running in Node:${Node} "
                     node("${Node.trim()}") {
                         unstash "app"
 
