@@ -37,28 +37,27 @@ timestamps {
 
         stage('deploy') {
             script {
-//                for (node in get_node("${JOB_NAME}-${params.ENV}")) {
                 for (node in nodeFilter("${JOB_NAME}-${params.ENV}")) {
                     echo "Node ${node} has the desired label."
-//                    node("${node}") {
-//                        unstash "app"
-//
-//                        sh """
-//                        # 创建目录
-//                        mkdir -pv /data/www-data
-//                        mkdir -pv /data0/log-data/${JOB_NAME}
-//
-//                        # 设置文件和目录的所有者为 www 用户
-//                        chown www.www -R /data0
-//                        chown www.www -R /data/www-data
-//
-//                        # 复制文件并覆盖同名文件
-//                        cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
-//
-//                        # 重新启动服务
-//                        sudo systemctl restart ${JOB_NAME}
-//                        """
-//                    }
+                    node("${node}") {
+                        unstash "app"
+
+                        sh """
+                        # 创建目录
+                        mkdir -pv /data/www-data
+                        mkdir -pv /data0/log-data/${JOB_NAME}
+
+                        # 设置文件和目录的所有者为 www 用户
+                        chown www.www -R /data0
+                        chown www.www -R /data/www-data
+
+                        # 复制文件并覆盖同名文件
+                        cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
+
+                        # 重新启动服务
+                        sudo systemctl restart ${JOB_NAME}
+                        """
+                    }
                 }
             }
         }
