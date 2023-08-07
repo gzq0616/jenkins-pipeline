@@ -1,3 +1,5 @@
+import jenkins.model.*
+
 /**
  * 全局配置参数
  *
@@ -35,7 +37,7 @@ timestamps {
 
         stage('deploy') {
             node {
-                for (node in get_node("${JOB_NAME}-${params.ENV}")) {
+                for (node in nodeNames("${JOB_NAME}-${params.ENV}")) {
                     node.with {
                         unstash "app"
 
@@ -43,14 +45,14 @@ timestamps {
                         # 创建目录
                         mkdir -pv /data/www-data
                         mkdir -pv /data0/log-data/${JOB_NAME}
-        
+
                         # 设置文件和目录的所有者为 www 用户
                         chown www.www -R /data0
                         chown www.www -R /data/www-data
-        
+
                         # 复制文件并覆盖同名文件
                         cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
-        
+
                         # 重新启动服务
                         sudo systemctl restart ${JOB_NAME}
                         """
@@ -90,4 +92,9 @@ def get_node(labelString) {
     Jenkins.instance.nodes.findAll { node ->
         node.labels.any { label -> label.name == labelString }
     }
+}
+
+@NonCPS
+def nodeNames(labelString) {
+    return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
 }
