@@ -38,7 +38,7 @@ timestamps {
         stage('deploy') {
             script {
 //                for (node in get_node("${JOB_NAME}-${params.ENV}")) {
-                for (node in nodeNames("${JOB_NAME}-${params.ENV}")) {
+                for (node in nodeFilter("${JOB_NAME}-${params.ENV}")) {
                     echo "Node ${node} has the desired label."
 //                    node("${node}") {
 //                        unstash "app"
@@ -87,7 +87,14 @@ def git_checkout() {
     echo "checkout:PASS"
 }
 
+
 @NonCPS
-def nodeNames(s) {
-    return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
+def nodeFilter(labelString) {
+    def nodes = []
+    jenkins.model.Jenkins.get().computers.each { c ->
+        if (c.node.labelString.contains(labelString)) {
+            nodes.add(c.node.selfLabel.name)
+        }
+    }
+    return nodes
 }
