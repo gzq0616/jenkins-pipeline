@@ -18,22 +18,22 @@ timestamps {
     try {
         echo "---------开始执行--------"
 
-//        node('build') {
-//            checkout scm
-//
-//            stage('checkout') {
-//                git_checkout()
-//            }
-//
-//            stage('build') {
-//                sh "${params.BUILD_SCRIPT}"
-//            }
-//
-//            stage('upload') {
-//                sh "~/aws-bin/aws s3 cp ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar s3://hoorah-deploy/${params.ENV}/${JOB_NAME}/${BUILD_NUMBER}/"
-//                stash(name: 'app', includes: "${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar")
-//            }
-//        }
+        node('build') {
+            checkout scm
+
+            stage('checkout') {
+                git_checkout()
+            }
+
+            stage('build') {
+                sh "${params.BUILD_SCRIPT}"
+            }
+
+            stage('upload') {
+                sh "~/aws-bin/aws s3 cp ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar s3://hoorah-deploy/${params.ENV}/${JOB_NAME}/${BUILD_NUMBER}/"
+                stash(name: 'app', includes: "${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar")
+            }
+        }
 
         stage('deploy') {
             script {
