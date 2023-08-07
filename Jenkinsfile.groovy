@@ -37,7 +37,8 @@ timestamps {
 
         stage('deploy') {
             script {
-                for (node in get_node("${JOB_NAME}-${params.ENV}")) {
+//                for (node in get_node("${JOB_NAME}-${params.ENV}")) {
+                for (node in nodeNames("${JOB_NAME}-${params.ENV}")) {
                     echo "Node ${node.name} has the desired label."
 //                    node("${node}") {
 //                        unstash "app"
@@ -91,4 +92,9 @@ def get_node(labelString) {
     Jenkins.instance.nodes.findAll { node ->
         node.labels.any { label -> label.name == labelString }
     }
+}
+
+@NonCPS
+def nodeNames(s) {
+    return jenkins.model.Jenkins.instance.nodes.collect { node -> node.name }
 }
