@@ -52,7 +52,7 @@ timestamps {
                         cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
 
                         # 重新启动服务
-                        # sudo systemctl restart ${JOB_NAME}
+                        sudo systemctl restart ${JOB_NAME}
                         """
                     }
                 }
@@ -83,7 +83,14 @@ def git_checkout() {
     echo "checkout:PASS"
 }
 
-
+/**
+ field hudson.model.Slave name
+ method hudson.model.AbstractCIBase getNodes
+ method hudson.model.Node getLabelString
+ staticMethod jenkins.model.Jenkins getInstance
+ * @param labelString
+ * @return
+ */
 @NonCPS
 def nodeFilter(labelString) {
     def nodes = []
