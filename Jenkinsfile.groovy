@@ -89,7 +89,7 @@ def nodeFilter(labelString) {
     def nodes = []
     jenkins.model.Jenkins.instance.nodes.collect { node ->
         if (node.labelString.contains(labelString)) {
-            nodes.add(node)
+            nodes.add(node.name.toString())
         }
     }
     return nodes
