@@ -34,25 +34,32 @@ timestamps {
 
         }
 
-        node("${JOB_NAME}-${params.ENV}") {
-            stage('deploy') {
-                unstash "app"
+        // 根据label获取节点
+        def nodesWithLabel = Jenkins.instance.nodes.findAll { node ->
+            node.labels.any { label -> label.name == "${JOB_NAME}-${params.ENV}" }
+        }
 
-                sh """
-                # 创建目录
-                mkdir -pv /data/www-data
-                mkdir -pv /data0/log-data/${JOB_NAME}
+        stage('deploy') {
+            for (node in nodesWithLabel) {
+                node.with {
+                    unstash "app"
 
-                # 设置文件和目录的所有者为 www 用户
-                chown www.www -R /data0
-                chown www.www -R /data/www-data
-
-                # 复制文件并覆盖同名文件
-                cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
-
-                # 重新启动服务
-                sudo systemctl restart ${JOB_NAME}
-                """
+                    sh """
+                    # 创建目录
+                    mkdir -pv /data/www-data
+                    mkdir -pv /data0/log-data/${JOB_NAME}
+    
+                    # 设置文件和目录的所有者为 www 用户
+                    chown www.www -R /data0
+                    chown www.www -R /data/www-data
+    
+                    # 复制文件并覆盖同名文件
+                    cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
+    
+                    # 重新启动服务
+                    sudo systemctl restart ${JOB_NAME}
+                    """
+                }
             }
         }
 
