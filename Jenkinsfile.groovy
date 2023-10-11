@@ -27,9 +27,19 @@ timestamps {
                 sh "${params.BUILD_SCRIPT}"
             }
 
-            stage('upload') {
-                sh "~/aws-bin/aws s3 cp ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar s3://hoorah-deploy/${params.ENV}/${JOB_NAME}/${BUILD_NUMBER}/"
-                stash(name: 'app', includes: "${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar")
+            if (JOB_NAME.endsWith("-fed")) { // 静态文件类型
+                stage('upload') {
+                    sh "~/aws-bin/aws s3 cp --recursive ${params.BUILD_PATH} s3://hoorah-deploy/${params.ENV}/${JOB_NAME}/${BUILD_NUMBER}/"
+                    stash(name: 'app', includes: "${params.BUILD_PATH}/index.html")
+
+                    sh "~/aws-bin/aws s3 cp --recursive ${params.BUILD_PATH} s3://hoorahgo-s1s4/${params.ENV}/${JOB_NAME}/"
+                    stash(name: 'app', includes: "${params.BUILD_PATH}/index.html")
+                }
+            } else {
+                stage('upload') {
+                    sh "~/aws-bin/aws s3 cp ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar s3://hoorah-deploy/${params.ENV}/${JOB_NAME}/${BUILD_NUMBER}/"
+                    stash(name: 'app', includes: "${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar")
+                }
             }
         }
 
