@@ -7,6 +7,7 @@
  * TARGET_NAME = job-executor-exec.jar
  * BUILD_PATH = job-executor-web
  * BUILD_SCRIPT = 构建脚本内容
+ * APP_TYPE = java-msv、nodejs，static
  */
 
 timestamps {
@@ -27,13 +28,18 @@ timestamps {
                 sh "${params.BUILD_SCRIPT}"
             }
 
-            if (JOB_NAME.endsWith("-fed")) { // 静态文件类型
+            if (params.APP_TYPE == "static") {
                 stage('upload') {
                     sh "~/aws-bin/aws s3 cp --recursive ${params.BUILD_PATH} s3://hoorah-deploy/${params.ENV}/${JOB_NAME}/${BUILD_NUMBER}/"
                     stash(name: 'app', includes: "${params.BUILD_PATH}/index.html")
 
                     sh "~/aws-bin/aws s3 cp --recursive ${params.BUILD_PATH} s3://hoorahgo-s1s4/${params.ENV}/${JOB_NAME}/"
                     stash(name: 'app', includes: "${params.BUILD_PATH}/index.html")
+                }
+            } else if (params.APP_TYPE == "nodejs") {
+                stage('upload') {
+                    sh "~/aws-bin/aws s3 cp ${params.BUILD_PATH}/${JOB_NAME}.tar.gz s3://hoorah-deploy/${params.ENV}/${JOB_NAME}/${BUILD_NUMBER}/"
+                    stash(name: 'app', includes: "${params.BUILD_PATH}/${JOB_NAME}.tar.gz")
                 }
             } else {
                 stage('upload') {
@@ -47,23 +53,49 @@ timestamps {
             script {
                 for (Node in nodeFilter("${JOB_NAME}-${params.ENV}")) {
                     node("${Node.trim()}") {
-                        unstash "app"
+                        if (params.APP_TYPE == "nodejs") {
+                            unstash "app"
 
-                        sh """
-                        # 创建目录
-                        mkdir -pv /data/www-data
-                        mkdir -pv /data0/log-data/${JOB_NAME}
+                            sh """
+                            # 创建目录
+                            mkdir -pv /data/www-data
+                            mkdir -pv /data0/log-data/${JOB_NAME}
 
-                        # 设置文件和目录的所有者为 www 用户
-                        chown www.www -R /data0
-                        chown www.www -R /data/www-data
+                            # 设置文件和目录的所有者为 www 用户
+                            chown www.www -R /data0
+                            chown www.www -R /data/www-data
 
-                        # 复制文件并覆盖同名文件
-                        cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
+                            # 复制文件并覆盖同名文件
+                            if [ -d /data/www-data/${JOB_NAME} ]
+                            then
+                                mv /data/www-data/${JOB_NAME} /data/www-data/${JOB_NAME}.bk.${BUILD_NUMBER}
+                            fi
+                            mkdir -p /data/www-data/${JOB_NAME}/
+                            cp -f ${params.BUILD_PATH}/${JOB_NAME}.tar.gz /data/www-data/${JOB_NAME}/
+                            tar -xf /data/www-data/${JOB_NAME}/${JOB_NAME}.tar.gz -C /data/www-data/${JOB_NAME}/
 
-                        # 重新启动服务
-                        sudo systemctl restart ${JOB_NAME}
-                        """
+                            # 重新启动服务
+                            sudo systemctl restart ${JOB_NAME}
+                            """
+                        } else {
+                            unstash "app"
+
+                            sh """
+                            # 创建目录
+                            mkdir -pv /data/www-data
+                            mkdir -pv /data0/log-data/${JOB_NAME}
+
+                            # 设置文件和目录的所有者为 www 用户
+                            chown www.www -R /data0
+                            chown www.www -R /data/www-data
+
+                            # 复制文件并覆盖同名文件
+                            cp -f ${params.BUILD_PATH}/target/${JOB_NAME}-exec.jar /data/www-data/${JOB_NAME}.jar
+
+                            # 重新启动服务
+                            sudo systemctl restart ${JOB_NAME}
+                            """
+                        }
                     }
                 }
             }
