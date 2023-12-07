@@ -4,6 +4,7 @@
  * 项目配置参数
  * REPO =   // 仓库地址
  * BRANCH = release  // 构建分支
+ * ENV = //环境
  * TARGET_NAME = job-executor-exec.jar
  * BUILD_PATH = job-executor-web
  * BUILD_SCRIPT = 构建脚本内容
@@ -65,10 +66,10 @@ timestamps {
                             chown www.www -R /data0
                             chown www.www -R /data/www-data
 
-                            # 复制文件并覆盖同名文件
+                            # 发布时先删除代码目录
                             if [ -d /data/www-data/${JOB_NAME} ]
                             then
-                                mv /data/www-data/${JOB_NAME} /data/www-data/${JOB_NAME}.bk.${BUILD_NUMBER}
+                                rm -rf /data/www-data/${JOB_NAME}
                             fi
                             mkdir -p /data/www-data/${JOB_NAME}/
                             cp -f ${params.BUILD_PATH}/${JOB_NAME}.tar.gz /data/www-data/${JOB_NAME}/
@@ -94,6 +95,17 @@ timestamps {
 
                             # 重新启动服务
                             sudo systemctl restart ${JOB_NAME}
+                            """
+                        }
+                        /**
+                        生产环境是多台机器，发布时如果太快会造成老机器尚未启动完成，新机器服务又进行重启，服务不可用。
+                        单台机器发布后，sleep 120秒再对下一台机器操作
+                        **/
+                        if (params.ENV == "prod") {
+                            unstash "app"
+
+                            sh """
+                            sleep 120
                             """
                         }
                     }
